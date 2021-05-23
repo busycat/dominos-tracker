@@ -1,7 +1,13 @@
 import 'dart:convert';
 
-OrderDetails orderDetailsFromMap(String str) =>
-    OrderDetails.fromMap(json.decode(str));
+OrderDetails orderDetailsFromMap(String str) {
+  try {
+    return OrderDetails.fromMap(json.decode(str));
+  } catch (e) {
+    print(e.toString());
+    throw e;
+  }
+}
 
 String orderDetailsToMap(OrderDetails data) => json.encode(data.toMap());
 
@@ -41,16 +47,16 @@ class DbData {
 
   final List<String> linkedMobiles;
   final List<String> linkedEmails;
-  final int totalNumOrders;
-  final int totalPriceSpent;
+  final double totalNumOrders;
+  final double totalPriceSpent;
   final List<RandomOrder> randomOrders;
   final List<String> otherDetails;
 
   factory DbData.fromMap(Map<String, dynamic> json) => DbData(
         linkedMobiles: List<String>.from(json["linked_mobiles"].map((x) => x)),
         linkedEmails: List<String>.from(json["linked_emails"].map((x) => x)),
-        totalNumOrders: json["total_num_orders"],
-        totalPriceSpent: json["total_price_spent"],
+        totalNumOrders: json["total_num_orders"].toDouble(),
+        totalPriceSpent: json["total_price_spent"].toDouble(),
         randomOrders: List<RandomOrder>.from(
             json["random_orders"].map((x) => RandomOrder.fromMap(x))),
         otherDetails: List<String>.from(json["other_details"].map((x) => x)),
@@ -78,7 +84,7 @@ class RandomOrder {
   final String deliveryAddress;
   final List<double> deliveryAddressLatLon;
   final String deliveryMobileNo;
-  final int orderPrice;
+  final double orderPrice;
   final DateTime orderTimeGmt;
 
   factory RandomOrder.fromMap(Map<String, dynamic> json) => RandomOrder(
@@ -86,7 +92,7 @@ class RandomOrder {
         deliveryAddressLatLon: List<double>.from(
             json["delivery_address_lat_lon"].map((x) => x.toDouble())),
         deliveryMobileNo: json["delivery_mobile_no"],
-        orderPrice: json["order_price"],
+        orderPrice: json["order_price"].toDouble(),
         orderTimeGmt: DateTime.parse(json["order_time_gmt"]),
       );
 

