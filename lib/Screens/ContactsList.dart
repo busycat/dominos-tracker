@@ -2,6 +2,8 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'Data.dart';
+
 class ContactsList extends StatefulWidget {
   final title = 'Dominos Order Tracker';
   @override
@@ -97,12 +99,13 @@ class _ContactsListState extends State<ContactsList> {
               child: TextField(
                 controller: searchController,
                 decoration: InputDecoration(
-                    labelText: 'Search',
-                    border: new OutlineInputBorder(
-                        borderSide: new BorderSide(
-                            color: Theme.of(context).primaryColor)),
-                    prefixIcon: Icon(Icons.search,
-                        color: Theme.of(context).primaryColor)),
+                  labelText: 'Search',
+                  // border: new OutlineInputBorder(
+                  //     borderSide: new BorderSide(
+                  //         color: Theme.of(context).primaryColor)),
+                  prefixIcon:
+                      Icon(Icons.search, color: Theme.of(context).primaryColor),
+                ),
               ),
             ),
             listItemsExist == true
@@ -122,9 +125,32 @@ class _ContactsListState extends State<ContactsList> {
 
                         Color color1 = baseColor[800];
                         Color color2 = baseColor[400];
-                        return ListTile(
+
+                        String subtitle = '';
+                        try {
+                          subtitle = contact.phones!.first.value!;
+                        } catch (e) {}
+                        return GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet(
+                                context: context,
+                                builder: (b) {
+                                  return Container(
+                                    padding: EdgeInsets.all(10),
+                                    child: ListView(
+                                      children: [
+                                        Center(
+                                            child: Text(
+                                                contact.displayName ?? 'Name')),
+                                        ShowData(contact, subtitle)
+                                      ],
+                                    ),
+                                  );
+                                });
+                          },
+                          child: ListTile(
                             title: Text(contact.displayName ?? 'Name'),
-                            subtitle: Text(contact.phones!.first.value!),
+                            subtitle: Text(subtitle),
                             leading: (contact.avatar != null &&
                                     contact.avatar!.length > 0)
                                 ? CircleAvatar(
@@ -145,7 +171,10 @@ class _ContactsListState extends State<ContactsList> {
                                         child: Text(contact.initials(),
                                             style:
                                                 TextStyle(color: Colors.white)),
-                                        backgroundColor: Colors.transparent)));
+                                        backgroundColor: Colors.transparent),
+                                  ),
+                          ),
+                        );
                       },
                     ),
                   )
